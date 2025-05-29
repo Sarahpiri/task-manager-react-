@@ -1,4 +1,4 @@
-import React, { type SVGAttributes } from "react";
+import { type SVGAttributes } from "react";
 
 const TrashIcon = (props: SVGAttributes<any>) => {
   return (
