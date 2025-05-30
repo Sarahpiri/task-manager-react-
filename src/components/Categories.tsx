@@ -9,6 +9,7 @@ interface CategorySelectProps {
 const Categories: React.FC<CategorySelectProps> = ({
   selectedCategory,
   onCategorySelect,
+  
 }) => {
   return (
     <select

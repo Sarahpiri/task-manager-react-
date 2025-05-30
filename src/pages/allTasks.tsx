@@ -8,8 +8,17 @@ import type { CategoryType } from "../types/category";
 import type { AlertType } from "../types/alert";
 import Alert from "../components/Alert";
 
-const AllTasks = () => {
-  const [allTasks, setAllTasks] = useState<ITask[]>([]);
+interface AllTaskProp {
+  allTasks: ITask[];
+  selectedSidebarCategory: CategoryType | "All";
+  setAllTasks: React.Dispatch<React.SetStateAction<ITask[]>>;
+}
+
+const AllTasks = ({
+  allTasks,
+  setAllTasks,
+  selectedSidebarCategory,
+}: AllTaskProp) => {
   const [taskInput, setTaskInput] = useState<string>("");
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryType>("General");
@@ -71,31 +80,38 @@ const AllTasks = () => {
   };
 
   const handleCheckboxChange = (taskId: number) => {
-    const updateTask = allTasks.map((task) => {
-      if (task.id === taskId) {
-        const newStatus = !task.completed;
-        if (newStatus) {
-          setAlertMessage("Your task has been cheked!");
-          setShowAlert(true);
-          setAlertType("completed");
-        } else {
-          setShowAlert(false);
-          setAlertMessage("");
-          setAlertType(null);
-        }
-        setTimeout(() => {
-          setShowAlert(false);
-        }, 1500);
+    const tempAllTask = [...allTasks];
+    const foundTaskIndex = tempAllTask.findIndex((task) => task.id === taskId);
+    if (foundTaskIndex === -1) {
+      setShowAlert(false);
+      setAlertMessage("");
+      setAlertType(null);
+      return;
+    }
 
-        return { ...task, completed: !task.completed };
-      }
-      return task;
-    });
-    setAllTasks(updateTask);
+    const updated: ITask = {
+      ...tempAllTask[foundTaskIndex],
+      completed: !tempAllTask[foundTaskIndex].completed,
+    };
+
+    tempAllTask.splice(foundTaskIndex, 1, updated);
+    setAllTasks(tempAllTask);
+
+    setAlertMessage("Your task has been checked!");
+    setShowAlert(true);
+    setAlertType("completed");
+    setTimeout(() => {
+      setShowAlert(false);
+    }, 1500);
   };
 
+  const filteredTasks: ITask[] =
+    selectedSidebarCategory === "All"
+      ? allTasks
+      : allTasks.filter((task) => task.category === selectedSidebarCategory);
+
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full h-full relative pt-8 lg:pt-0">
       <Alert message={alertMessage} visible={showAlert} type={alertType} />
       <div className="w-full flex flex-col justify-center p-6 pt-12 gap-3 ">
         <p className="font-bold text-3xl">All Tasks</p>
@@ -108,7 +124,7 @@ const AllTasks = () => {
           <AddTaskBtn onAddTask={handleClickAddBtn} />
         </div>
 
-        {allTasks.map((task) => (
+        {filteredTasks.map((task) => (
           <Task
             task={task}
             onChangeStatus={() => handleCheckboxChange(task.id)}
